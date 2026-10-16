@@ -1,4 +1,9 @@
 # Copy to terraform.tfvars (git-ignored) and adjust.
-aws_region   = "us-east-1"
-project_name = "biaotech-cloud-lab"
-environment  = "lab"
+# acknowledge_aws_charges is deliberately NOT set here: pass it on the command line,
+# consciously, only after reading docs/aws-zero-spend-guardrails.md.
+aws_region        = "us-east-1"
+project_name      = "biaotech-cloud-lab"
+environment       = "lab"
+github_repository = "paulobiao/biaotech-cloud-lab"
+github_branch     = "main"
+# alb_ingress_cidrs = ["203.0.113.10/32"] # restrict the ALB to your own IP

@@ -2,11 +2,11 @@
 
 **Infrastructure as Code & Cloud Operations**
 
-**Status: `LOCAL FOUNDATION`**
+**Status: `AWS DESIGN — NOT DEPLOYED ($0 SPEND)`**
 
-A real, reproducible AWS infrastructure lab built incrementally: a small containerized API deployed to ECS Fargate behind an Application Load Balancer, defined entirely in Terraform and delivered by GitHub Actions using OIDC instead of stored AWS keys.
+A real, reproducible AWS infrastructure lab built incrementally: a small containerized API designed to run on ECS Fargate behind an Application Load Balancer, defined entirely in Terraform and delivered by GitHub Actions using OIDC instead of stored AWS keys.
 
-> **Nothing has been deployed to AWS yet.** Phase 1 runs entirely locally. Each later phase is marked done only after it has actually been executed and verified. See [docs/roadmap.md](docs/roadmap.md).
+> **Nothing has been deployed to AWS.** The full AWS architecture exists as validated Terraform code that has never been applied, and `terraform plan`/`apply` are blocked by default by a zero-spend gate. See [docs/aws-zero-spend-guardrails.md](docs/aws-zero-spend-guardrails.md) and [docs/roadmap.md](docs/roadmap.md).
 
 ## Objective
 
@@ -54,11 +54,13 @@ Full diagram and rationale: [docs/architecture.md](docs/architecture.md).
 │   ├── test/app.test.ts       Endpoint tests
 │   ├── Dockerfile
 │   └── package.json
-├── infra/terraform/           Terraform root module (skeleton; no resources yet)
+├── infra/terraform/           Terraform root module (designed, validated, NEVER applied)
 │   ├── versions.tf  providers.tf  variables.tf  main.tf  outputs.tf
+│   ├── network.tf  ecr.tf  iam.tf  github_oidc.tf  ecs.tf  alb.tf  cloudwatch.tf
 │   └── terraform.tfvars.example
 └── docs/
     ├── architecture.md  security.md  cost-strategy.md  roadmap.md
+    ├── aws-zero-spend-guardrails.md  portfolio-evidence.md
 ```
 
 ## Local development
@@ -107,6 +109,8 @@ terraform init -backend=false
 terraform validate
 ```
 
+`terraform plan` and `terraform apply` deliberately fail unless `-var acknowledge_aws_charges=true` is passed. **Do not do that** while the zero-spend policy is in force: the configuration creates resources that bill hourly (ALB, Fargate, public IPv4, CloudWatch alarms).
+
 ## Security principles
 
 - No long-lived AWS access keys; CI will use GitHub OIDC with a repo-scoped role.
@@ -118,8 +122,8 @@ Details: [docs/security.md](docs/security.md). Cost analysis: [docs/cost-strateg
 
 ## Roadmap
 
-1. Local foundation ← **current**
-2. Terraform AWS foundation
+1. Local foundation ✅
+2. Terraform AWS foundation ✅ design only, not applied ← **current**
 3. ECR + container publishing
 4. ECS Fargate deployment
 5. GitHub OIDC + CI/CD
@@ -129,6 +133,9 @@ Details: [docs/security.md](docs/security.md). Cost analysis: [docs/cost-strateg
 
 ## Current status
 
-- ✅ API, tests, Docker image, Terraform skeleton and CI workflow verified **locally**.
-- ⏳ CI workflow not yet run on GitHub (repository not pushed).
-- ❌ No AWS resources exist. No deployment has occurred.
+- ✅ API, tests, Docker image (non-root, read-only-compatible) verified locally.
+- ✅ GitHub Actions CI green.
+- ✅ AWS architecture (VPC, ECR, IAM, GitHub OIDC, ECS Fargate, ALB, CloudWatch) written in Terraform and validated.
+- ❌ No AWS resources exist. No deployment has occurred. AWS spend: $0.
+
+Verified vs planned evidence: [docs/portfolio-evidence.md](docs/portfolio-evidence.md).

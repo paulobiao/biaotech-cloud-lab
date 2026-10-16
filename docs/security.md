@@ -1,6 +1,6 @@
 # Security
 
-> **Status:** design principles and Phase 1 controls. AWS-side controls are planned, not yet implemented or validated.
+> **Status:** AWS-side controls are written in Terraform (`iam.tf`, `github_oidc.tf`, `network.tf`) but **not deployed and not tested against AWS**. Container controls are verified locally.
 
 ## 1. No long-lived AWS credentials
 
@@ -12,10 +12,11 @@
 ## 2. GitHub OIDC strategy (Phase 5)
 
 1. Terraform creates an IAM OIDC identity provider for `token.actions.githubusercontent.com` (audience `sts.amazonaws.com`).
-2. Terraform creates a deploy role whose trust policy only accepts tokens where:
+2. Terraform creates a deploy role whose trust policy only accepts tokens where (`StringEquals`, no wildcards):
    - `aud` = `sts.amazonaws.com`
-   - `sub` matches this repository **and** a specific ref or GitHub environment, e.g. `repo:<owner>/biaotech-cloud-lab:ref:refs/heads/main` or `repo:<owner>/biaotech-cloud-lab:environment:lab`.
-   Wildcards over the owner or repository are never used.
+   - `sub` = `repo:paulobiao/biaotech-cloud-lab:ref:refs/heads/main` (from `var.github_repository` / `var.github_branch`).
+   Pull requests, other branches and forks produce a different `sub` and cannot assume the role.
+   If the deploy job later uses a GitHub *environment*, the `sub` becomes `repo:…:environment:<name>` and the condition must be updated to match.
 3. The workflow requests `id-token: write` only in the deploy job and uses `aws-actions/configure-aws-credentials` with `role-to-assume`; credentials last for the job only.
 4. Pull requests from forks never get a role: CI on PRs stays credential-free.
 
@@ -38,7 +39,8 @@ Infrastructure changes (`terraform apply`) are run by a human with an SSO sessio
 - Runs as the unprivileged `node` user (UID 1000); app files are root-owned and not writable by it.
 - `npm ci` against a committed lockfile for deterministic installs.
 - ECR scan-on-push (Phase 3) for OS/package CVEs.
-- Planned hardening: pin the base image by digest, `readonlyRootFilesystem` in the task definition, drop Linux capabilities.
+- Task definition sets `readonlyRootFilesystem = true` and drops all Linux capabilities; the image was verified locally to run healthy with `docker run --read-only --cap-drop ALL`.
+- Planned hardening: pin the base image by digest.
 
 ## 5. Terraform state
 

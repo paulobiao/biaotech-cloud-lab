@@ -4,8 +4,8 @@ Each phase ends with something verifiable. A phase is marked done only when its 
 
 | Phase | Status |
 |---|---|
-| 1 — Local foundation | ✅ Done (local only) |
-| 2 — Terraform AWS foundation | Not started |
+| 1 — Local foundation | ✅ Done (local + CI green on GitHub) |
+| 2 — Terraform AWS foundation | ✅ Design done (validated, **not applied**, $0 spend) |
 | 3 — ECR + container publishing | Not started |
 | 4 — ECS Fargate deployment | Not started |
 | 5 — GitHub OIDC + CI/CD | Not started |
@@ -23,13 +23,21 @@ Each phase ends with something verifiable. A phase is marked done only when its 
 
 **Exit:** all of the above pass locally and in CI.
 
-## Phase 2 — Terraform AWS foundation
+## Phase 2 — Terraform AWS foundation (zero-spend design)
 
-- Bootstrap remote state (S3, versioned, encrypted, native locking).
-- AWS Budgets alert.
-- `network.tf`: VPC, two public subnets in two AZs, internet gateway, route table, ALB and task security groups. No NAT gateway.
+Done, as design only — **AWS spend must remain $0; nothing applied**:
 
-**Exit:** `terraform plan` is clean and reviewed; `apply` + `destroy` cycle succeeds.
+- Full Terraform design: `network.tf`, `ecr.tf`, `iam.tf`, `github_oidc.tf`, `ecs.tf`, `alb.tf`, `cloudwatch.tf`.
+- `acknowledge_aws_charges` gate: `plan`/`apply` fail by default.
+- Cost classification of every resource; [aws-zero-spend-guardrails.md](aws-zero-spend-guardrails.md); [portfolio-evidence.md](portfolio-evidence.md).
+
+**Exit (met):** `terraform fmt`, `init -backend=false`, `validate` pass; no AWS calls made.
+
+Deferred until a deployment is explicitly approved and budgeted:
+
+- Remote state (S3, versioned, encrypted, native locking) — small but non-zero cost.
+- AWS Budgets alert (a notification, not a spending limit).
+- First reviewed `terraform plan` against the real account.
 
 ## Phase 3 — ECR + container publishing
 

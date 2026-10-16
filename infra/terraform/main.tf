@@ -8,11 +8,11 @@ locals {
   }
 }
 
-# Planned resources, added one concern per file as each roadmap phase lands:
-#   network.tf     - VPC, public subnets in 2 AZs, security groups (no NAT gateway)  Phase 2
-#   ecr.tf         - ECR repository, scan on push, lifecycle policy                  Phase 3
-#   ecs.tf         - ECS cluster, task definition, Fargate service                   Phase 4
-#   alb.tf         - Application Load Balancer, target group (/ready), listener      Phase 4
-#   iam.tf         - task execution role, task role                                  Phase 4
-#   github_oidc.tf - GitHub OIDC provider + repo-scoped deploy role                  Phase 5
-#   cloudwatch.tf  - log group with retention, alarms                                Phase 6
+# One file per concern. NOTHING here has been applied; see docs/aws-zero-spend-guardrails.md.
+#   network.tf     - VPC, 2 public subnets, IGW, routes, security groups (no NAT gateway)
+#   ecr.tf         - ECR repository + lifecycle policy
+#   iam.tf         - ECS task execution role, task role
+#   github_oidc.tf - GitHub OIDC provider + repo/branch-scoped deploy role
+#   ecs.tf         - ECS cluster, task definition, Fargate service
+#   alb.tf         - Application Load Balancer, target group, HTTP listener
+#   cloudwatch.tf  - log group (short retention), alarms
