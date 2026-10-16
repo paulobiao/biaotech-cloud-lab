@@ -1,0 +1,62 @@
+name: CI
+
+# Runs without any AWS credentials. Deployment workflow (GitHub OIDC) arrives in Phase 5.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: App (typecheck, test, build, Docker)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+      - name: Docker build
+        run: docker build --build-arg APP_VERSION=${{ github.sha }} -t biaotech-cloud-lab-api:ci .
+
+      - name: Container smoke test
+        run: |
+          docker run -d --name api -p 3000:3000 biaotech-cloud-lab-api:ci
+          for i in $(seq 1 30); do curl -fs localhost:3000/ready && break; sleep 1; done
+          curl -fs localhost:3000/health
+          docker stop api
+
+  terraform:
+    name: Terraform (fmt, validate)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/terraform
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.15"
+
+      - run: terraform fmt -check -recursive
+      - run: terraform init -backend=false -input=false
+      - run: terraform validate

@@ -1,0 +1,66 @@
+# ---------- Node / TypeScript ----------
+node_modules/
+dist/
+*.tsbuildinfo
+.npm/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---------- Logs ----------
+logs/
+*.log
+
+# ---------- Environment files & secrets ----------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+.secrets
+
+# ---------- AWS / cloud credentials ----------
+.aws/
+credentials
+*.credentials
+aws-exports.js
+
+# ---------- Terraform ----------
+# .terraform.lock.hcl is intentionally NOT ignored: commit it.
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+crash.log
+crash.*.log
+*.tfplan
+*.tfplan.json
+tfplan
+plan.out
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# ---------- macOS ----------
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ---------- Editors ----------
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*~
